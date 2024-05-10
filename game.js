@@ -3,8 +3,7 @@ var gamePattern = [];
 var userClickedPattern = [];
 var started = false;
 var count = 0;
-var level = 0;
-
+var level = 1;
 
 $(document).one('keypress', function () {
     if (!started) {
@@ -14,25 +13,21 @@ $(document).one('keypress', function () {
     }
 });
 
-
 function nextSequence() {
     var randomNum = Math.floor(Math.random() * 4);
     var randomChosenColor = colors[randomNum];
     gamePattern.push(randomChosenColor);
-    console.log(gamePattern);
-
     $("#" + randomChosenColor).fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100);
     playSound(randomChosenColor);
-
     $("#level-title").text("Level " + level);
     level++;
 }
-
 
 function playSound(name) {
     var audio = new Audio("sounds/" + name + ".mp3");
     audio.play();
 }
+
 function animatePress(currentColor) {
     $("." + currentColor).addClass("pressed");
     setTimeout(function () {
@@ -40,32 +35,43 @@ function animatePress(currentColor) {
     }, 800);
 }
 
-function checkAnswer() {
-    if (JSON.stringify(userClickedPattern) == JSON.stringify(gamePattern)) {
+function checkAnswer(currentLevel) {
+    if (JSON.stringify(userClickedPattern) === JSON.stringify(gamePattern)) {
         setTimeout(() => {
             nextSequence();
         }, 1000);
         userClickedPattern = [];
+        count = 0;
     }
-    else {
-        playSound(wrong);
-        $(body).addClass('game-over');
-        setInterval(() => {
-            $(body).removeClass('game-over');
+
+    else if (JSON.stringify(userClickedPattern) !== JSON.stringify(gamePattern)) {
+        $("#level-title").text("Game Over, Press Any Key to Restart");
+        playSound("wrong");
+        $("body").addClass('game-over');
+        setTimeout(() => {
+            $("body").removeClass('game-over');
         }, 200);
-        $(h1).
+        gamePattern = [];
+        userClickedPattern = [];
+        level = 0;
+        $(document).one('keypress', function () {
+            nextSequence();
+            $('#level-title').text("Level " + level);
+        })
     }
 }
 
 $(".btn").on('click', function () {
     var userChosenColor = $(this).attr('id');
-    playSound(userChosenColor);
     userClickedPattern.push(userChosenColor);
-    console.log(userClickedPattern);
+    playSound(userChosenColor);
     animatePress(userChosenColor);
-    setTimeout(() => {
-        checkAnswer();
-    }, 1000);
+    count++;
+    if (count === gamePattern.length) {
+        setTimeout(() => {
+            checkAnswer(count);
+        }, 200);
+    }
 })
 
 
